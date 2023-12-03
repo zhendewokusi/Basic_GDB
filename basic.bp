@@ -1,0 +1,2 @@
+dprintf /home/yuanfang/study/基础知识点/gdb/basic1.c:24,"HELLOWORLD"
+dprintf /home/yuanfang/study/基础知识点/gdb/basic1.c:26,"HELLOWORLD %d \n",j
