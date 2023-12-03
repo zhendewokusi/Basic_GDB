@@ -1,6 +1,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 #define NUM 123
+
+int add(int a,int b){
+    return a+b;
+}
+
 void func2() {
     printf("FUNC2\n");
 }

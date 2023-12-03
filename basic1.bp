@@ -1,0 +1,3 @@
+dprintf /home/yuanfang/study/基础知识点/gdb/basic1.c:19,"HELLO,WORLD\n"
+dprintf /home/yuanfang/study/基础知识点/gdb/basic1.c:22,"j = %d , k = %d\n",j,k
+dprintf /home/yuanfang/study/基础知识点/gdb/basic1.c:25,"FINFISH\n"
