@@ -1,12 +1,12 @@
 #include <stdbool.h>
 #include <stdio.h>
-
+#define NUM 123
 void func2() {
     printf("FUNC2\n");
 }
 
 void func1(int* p, bool judge) {
-    *p = 123;
+    *p = NUM;
     if (judge)
         func2();
 }

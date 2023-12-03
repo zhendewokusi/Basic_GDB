@@ -16,23 +16,106 @@ n（next的缩写）命令进行单步执行。
 
 s（step的缩写）：单步调试如果有函数调用，则进入函数；与命令n不同，n是不进入调用的函数的
 
-fin(finish的缩写)：直到当前函数完成返回，并打印函数返回时的堆栈地址和返回值及参数值等信息。
+函数完成返回，并打印函数返回时的堆栈地址和返回值及参数值等信息。
 
-watch 表达式：设置一个监视点，一旦被监视的“表达式”的值改变，gdb将强行终止正在被调试的程序。如： watch a
+watch 表达式：设置一个监视点，一旦被监视的“表达式”的值改变，gdb将强行终止正在被调试的程序。如： `watch a`
+    rwatch awatch
 
-bt / up / down / backtrace / frame / x / p
+x/p:x 命令用于查看内存中的数据，而 /p 是其中的一种输出格式选项之一。
 
-layout
+where/bt ：当前运行的堆栈列表
 
-info 
+up/down/frame:
 
-command / condition
+1. **up命令：**
+   - 用法：`up [count]`
+   - 作用：将当前调用堆栈帧上移 `count` 个帧。如果没有提供 `count`，则默认上移一个帧。每个帧对应于一个函数调用。
 
-until
+2. **down命令：**
+   - 用法：`down [count]`
+   - 作用：将当前调用堆栈帧下移 `count` 个帧。如果没有提供 `count`，则默认下移一个帧。
 
-tbreak
+3. **frame命令：**
+   - 用法：`frame [frame-number]`
+   - 作用：选择调用堆栈中的特定帧。
 
-revese-step / c /
 
-watch / awatch / rwatch
+- 分割窗口:
+layout：用于分割窗口，可以一边查看代码，一边测试：
+layout src：显示源代码窗口
+layout asm：显示反汇编窗口
+layout regs：显示源代码/反汇编和CPU寄存器窗口
+layout split：显示源代码和反汇编窗口
+Ctrl + L：刷新窗口
+winheight:改变窗口高度
+
+info :看断点信息，局部变量等等
+
+command / condition:
+
+1. **`command` 命令：**
+   - `command` 命令允许你定义一个自定义 GDB 命令，该命令可以包含一系列 GDB 命令，这些命令将在程序执行时被执行。
+   - 语法：
+     ```bash
+     command [COUNT] [SHELL-COMMANDS]
+     ```
+
+     - `COUNT` 表示该命令在程序执行多少次后将被删除。如果省略 `COUNT`，则该命令会一直存在。
+     - `SHELL-COMMANDS` 是在达到断点时要执行的 GDB 命令列表。
+
+   - 示例：
+     ```bash
+     (gdb) break 10
+     (gdb) command 3
+     > silent
+     > printf "At line %d\n", __LINE__
+     > continue
+     > end
+     ```
+
+     这将在程序执行到第 10 行时，每执行 3 次就打印一条消息，并继续执行。
+
+2. **`condition` 命令：**
+   - `condition` 命令用于设置断点的条件。这意味着，只有在满足指定条件时，断点才会中断程序执行。
+   - 语法：
+     ```bash
+     condition BREAKPOINT-NUMBER EXPRESSION
+     ```
+
+     - `BREAKPOINT-NUMBER` 是断点的编号。
+     - `EXPRESSION` 是一个表达式，如果该表达式的值为真（非零），则断点会中断程序执行。
+
+   - 示例：
+     ```bash
+     (gdb) break 20
+     (gdb) condition 1 i == 5
+     ```
+
+     这将在程序执行到第 20 行时，只有当变量 `i` 的值等于 5 时，才会中断程序执行。
+
+until:直到多少行，哪个函数....
+
+tbreak:临时断点
+
+revese-step / c /:和record一起用，回退。记录寄存器，内存，各种信息
+
 # GDB打印复杂数据结构
+
+正常数据结构太难看，让它输出好看点
+
+# 宏定义
+
+GCC的调试选项 -g
+我们知道，要想用GDB进行调试，必须在用GCC编译时加上“-g”选项。但很多童鞋可能不知道的是，和优化选项“-Ox”一样，调试选项“-g”也有几个等级可选：
+
+-g 默认选项，同-g2
+
+-g0 不生成任何调试信息，和编译时不加“-g”是一样的。
+
+-g1 生成最少量的调试信息，这些信息足够用来通过backtrace查看调用栈符号信息。主要包括了函数声明、外部变量和行号等信息，但是不包含局部变量信息。这个选项比较少用。
+
+-g2 生成足够多的调试信息，可以用GDB进行正常的程序调试，这个是默认选项。
+
+-g3 在-g2的基础上产生更多的信息，如宏定义。
+
+可见，我们编译时加的“-g”选项，其实等同于“-g2”，它产生了足够多的调试信息，我们可以用gdb查看调用栈、查看局部变量等。但是，要想查看宏定义，则必须要使用“-g3”选项。
