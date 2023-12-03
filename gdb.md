@@ -174,3 +174,46 @@ save breakpoints file_name
 gdb后加`-x`加`file_name`加载断点信息。
 
 # GDB Dynamic Printf 多余吗?
+```c
+#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+
+int global = 6;
+
+void alarm_handler() {
+    global++;
+}
+
+int main(int argc,char* argv[]) {
+    int a,b,c;
+
+    signal(SIGALRM, alarm_handler);
+    alarm(1);
+
+    a = 9;
+    b = 9;
+    c = 6;
+
+    c = (a + b) / (global - c);
+    return 0;
+}
+```
+## 普通断点的问题
+我们前面尝试了单步执行，以及直接在第23行设置断点并打印变量的方式，可程序都能够正常执行结束，浮点异常错误无法重现。
+
+这两种方式存在的共同问题是，**在程序触发断点后，需要和用户进行交互，用户必须手动输入命令并恢复程序的执行。而和用户交互，势必引入延迟。**
+
+实际上，无论是单步执行，还是在断点触发后打印a、b、c、global_variable的值，都无法b保证程序在在1秒钟内执行完毕。因此，第17行设置的闹钟就会到期。
+
+**尽管我们用GDB调试程序时，被调试程序本身的执行被暂时停止，但是alarm函数设置的闹钟是由底层OS内核提供的服务。无论我们的程序执行是否被暂停，OS内核仍然会在设置的闹钟到期后，向应用程序发送SIGALRM信号。**
+
+如此以来，无论我们是用step命令还是continue命令恢复程序执行，程序都会首先处理SIGALRM信号，然后才去执行接下来的代码。
+
+在SIGALRM的处理函数alarm_handler()中，会把global_variable加1，它的值变成了5,。接下来执行第23行代码时，global_variable - c的值就变成了1，当然不会再触发除零错误了。
+
+接下来，我们用GDB的动态打印功能来调试一下。
+
+# 反向调试
+
+反向调试技术的核心原理，简单来说，是在程序运行中，记录每一条指令对程序执行的所有状态变化，包括变量、寄存器、内存的数据变化等，并将这些信息存储在一个history文件中。当需要回溯到过去的状态时，调试器会按照相反的顺序逐条指令恢复这些状态，使得程序的执行状态回到已经被记录的任意时间点。

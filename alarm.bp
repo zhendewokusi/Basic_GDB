@@ -1,0 +1,1 @@
+dprintf /home/yuanfang/study/基础知识点/gdb/alarm.c:21,"a = %d, b = %d, c = %d, global_variable = %d",a,b,c,global
